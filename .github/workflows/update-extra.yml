@@ -1,0 +1,41 @@
+name: 신호표 데이터 업데이트
+
+on:
+  schedule:
+    # 한국 시간 화~토 오전 7시 45분 (macro-dashboard 업데이트 직후)
+    - cron: "45 22 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-extra
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install yfinance pandas requests lxml
+      - run: python scripts/fetch_extra.py
+      - name: 바뀐 데이터 저장
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/extra.json
+          if git diff --cached --quiet; then
+            echo "바뀐 데이터가 없어요"
+            exit 0
+          fi
+          git commit -m "신호표 데이터 업데이트 $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M')"
+          for i in 1 2 3; do
+            git pull --rebase -X theirs origin main && git push && exit 0
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 5))
+          done
+          exit 1
