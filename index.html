@@ -76,6 +76,7 @@ button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; 
 .asset { margin-top: 56px; }
 .asset-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
 .asset-head h2 { font-size: 1.7rem; }
+.asset-head h2 .q { font-family: "IBM Plex Sans KR", system-ui, sans-serif; font-weight: 400; font-size: 1rem; color: var(--muted); margin-left: 6px; }
 .inputs { display: flex; flex-wrap: wrap; gap: 14px 20px; padding: 18px 0; }
 .field { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--muted); min-width: 150px; flex: 1 1 170px; max-width: 260px; }
 .field .row { display: flex; align-items: center; gap: 6px; }
@@ -122,6 +123,67 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outli
 .stage:last-child { border-radius: 0 6px 6px 0; }
 .stage.hit { background: var(--buy-bg); color: var(--buy); font-weight: 600; border-color: transparent; }
 
+.desc { margin: 14px 0 0; max-width: 46em; }
+.desc p { margin: 0 0 6px; }
+.desc .note { color: var(--muted); font-size: .9rem; }
+.block { flex: 1 1 100%; }
+.block h4 { margin: 0 0 8px; font-size: .95rem; font-weight: 600; }
+.block .sub { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
+.scroll { overflow-x: auto; }
+table.capex { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .9rem; font-variant-numeric: tabular-nums; }
+table.capex th, table.capex td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.capex th { white-space: nowrap; font-weight: 500; color: var(--muted); font-size: .82rem; }
+table.capex td.num { white-space: nowrap; }
+.up { color: var(--buy); }
+.down { color: var(--sell); }
+.warn { display: inline-block; margin-left: 6px; font-size: .78rem; color: var(--review); background: var(--review-bg); border-radius: 999px; padding: 1px 8px; }
+.guide { display: grid; gap: 8px; }
+.g-row { display: grid; grid-template-columns: 7.5em 9em 10em 1fr; gap: 8px; align-items: center; }
+.g-head { font-size: .82rem; color: var(--muted); }
+.g-name { font-weight: 500; }
+.g-row select, .g-row input {
+  width: 100%; font: inherit; font-size: .95rem; color: var(--ink); background: var(--field);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+}
+.g-row.stale .g-name::after { content: " · 재확인"; color: var(--review); font-weight: 400; font-size: .82rem; }
+.season { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+.season.alert { color: var(--review); }
+@media (max-width: 720px) {
+  .g-head { display: none; }
+  .g-row { grid-template-columns: 1fr 1fr; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .g-name { grid-column: 1 / -1; }
+  .g-row input[type="text"] { grid-column: 1 / -1; }
+}
+
+.e-drop {
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start; cursor: pointer;
+  border: 1.5px dashed var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);
+}
+.e-drop.over, .e-drop:hover { border-color: var(--ink); }
+.e-drop:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
+.e-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.e-drop strong { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.e-status { margin: 8px 0 0; font-size: .88rem; color: var(--muted); min-height: 1em; }
+.e-card { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 16px 18px; }
+.e-card header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.e-card h5 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+.e-card h5 span { font-weight: 400; font-size: .85rem; color: var(--muted); margin-left: 6px; }
+.e-grid { display: grid; grid-template-columns: 9.5em 1fr; gap: 6px 14px; margin: 12px 0; font-size: .92rem; font-variant-numeric: tabular-nums; }
+.e-grid dt { color: var(--muted); }
+.e-grid dd { margin: 0; font-weight: 500; }
+.e-grid small { font-weight: 400; color: var(--muted); font-size: .85em; margin: 0 4px; }
+.e-read { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: .92rem; }
+.e-guide, .e-none { margin: 12px 0 0; font-size: .88rem; color: var(--muted); }
+.e-guide p { margin: 0 0 4px; }
+.e-guide ul { margin: 0; padding-left: 1.1em; color: var(--ink); }
+.e-none { border-left: 2px solid var(--review); padding-left: 10px; color: var(--ink); }
+.e-apply {
+  margin-top: 12px; font: inherit; font-size: .9rem; font-weight: 500; cursor: pointer;
+  color: var(--surface); background: var(--ink); border: 0; border-radius: 6px; padding: 8px 14px;
+}
+.e-apply:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (max-width: 720px) { .e-grid { grid-template-columns: 1fr; gap: 0 0; } .e-grid dd { margin-bottom: 8px; } }
+
 footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; max-width: 46em; }
 
 @media (max-width: 720px) {
@@ -154,10 +216,11 @@ footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line);
   <main id="assets"></main>
 
   <footer>
-    하락률은 각 데이터에 담긴 최근 약 3년 중 가장 높은 종가를 고점으로 계산합니다. 금은 COMEX 금 선물, AI 관련 주식은 data/extra.json의 ETF(없으면 나스닥 종합)를 기준으로 합니다. 개인 투자 원칙을 점검하기 위한 도구이며 투자 자문이 아닙니다. 최종 판단과 책임은 본인에게 있습니다.
+    하락률은 각 데이터에 담긴 최근 약 3년 중 가장 높은 종가를 고점으로 계산합니다. 금은 COMEX 금 선물, AI 관련 주식은 data/extra.json의 ETF(없으면 나스닥 종합)를 기준으로 합니다. 빅테크 설비투자 금액은 SEC 공시 현금흐름표의 유형자산 취득액으로, 금융리스는 빠져 있어 회사 발표 숫자와 다를 수 있습니다. 개인 투자 원칙을 점검하기 위한 도구이며 투자 자문이 아닙니다. 최종 판단과 책임은 본인에게 있습니다.
   </footer>
 </div>
 
+<script src="assets/earnings.js"></script>
 <script>
 /* ── 데이터 위치 (같은 github.io 주소 아래에 있어야 합니다) ── */
 const SOURCES = {
@@ -174,6 +237,96 @@ function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); 
 const AUTO = {};      // id → { value, note }
 const HINT = {};      // id → html
 const LOADED = {};    // 출처별 상태
+let CAPEX = null;     // 빅테크 분기 설비투자
+
+const BIGTECH = [
+  { id: "msft", name: "마이크로소프트" },
+  { id: "googl", name: "알파벳" },
+  { id: "amzn", name: "아마존" },
+  { id: "meta", name: "메타" }
+];
+
+/* 실적 시즌: 1·4·7·10월 20일 무렵 시작 */
+function seasonStart(d) {
+  for (let y = d.getFullYear(); y >= d.getFullYear() - 1; y--) {
+    for (const m of [9, 6, 3, 0]) {
+      const s = new Date(y, m, 20);
+      if (s <= d) return s;
+    }
+  }
+  return null;
+}
+function nextSeason(d) {
+  for (let y = d.getFullYear(); y <= d.getFullYear() + 1; y++) {
+    for (const m of [0, 3, 6, 9]) {
+      const s = new Date(y, m, 20);
+      if (s > d) return s;
+    }
+  }
+  return null;
+}
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const monthLabel = d => `${d.getFullYear()}년 ${d.getMonth() + 1}월 말`;
+
+function guideStatus() {
+  const start = seasonStart(new Date());
+  let cut = 0, known = 0;
+  const stale = [];
+  BIGTECH.forEach(c => {
+    const g = state["ai_g_" + c.id] || "";
+    const d = state["ai_d_" + c.id] || "";
+    if (g) known++;
+    if (g === "축소") cut++;
+    if (!g || !d || (start && d < ymd(start))) stale.push(c.name);
+  });
+  return { cut, known, stale, start };
+}
+
+function quarterLabel(end) {
+  const [y, m] = end.split("-").map(Number);
+  return `${String(y).slice(2)}년 ${Math.ceil(m / 3)}분기`;
+}
+function capexHTML() {
+  if (!CAPEX || !CAPEX.companies.length) {
+    return `<p class="sub">빅테크 설비투자 데이터가 아직 없습니다. GitHub Actions에서 ‘신호표 데이터 업데이트’를 실행하면 채워집니다.</p>`;
+  }
+  const rows = BIGTECH.map(b => {
+    const c = CAPEX.companies.find(x => x.id === b.id);
+    if (!c || !c.quarters || !c.quarters.length) return `<tr><td>${b.name}</td><td colspan="4">데이터 없음</td></tr>`;
+    const q = c.quarters, last = q[q.length - 1];
+    const yearAgo = q.find(x => Math.abs((new Date(last.end) - new Date(x.end)) / 864e5 - 365) <= 15);
+    const yoy = yearAgo && yearAgo.value ? (last.value / yearAgo.value - 1) * 100 : null;
+    const n = q.length;
+    const twoDown = n >= 3 && q[n - 1].value < q[n - 2].value && q[n - 2].value < q[n - 3].value;
+    const trend = q.slice(-5).map(x => x.value.toFixed(1)).join(" → ");
+    return `<tr>
+      <td>${b.name}${twoDown ? `<span class="warn">2분기 연속 감소</span>` : ""}</td>
+      <td>${quarterLabel(last.end)}</td>
+      <td class="num">${last.value.toFixed(1)}</td>
+      <td class="num ${yoy == null ? "" : yoy >= 0 ? "up" : "down"}">${yoy == null ? "–" : (yoy >= 0 ? "+" : "") + yoy.toFixed(0) + "%"}</td>
+      <td class="num">${trend}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="scroll"><table class="capex">
+    <thead><tr><th>회사</th><th>최근 분기 (달력 기준)</th><th>설비투자 (십억 달러)</th><th>전년 대비</th><th>최근 5분기 추이</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    <p class="sub">${CAPEX.source}. 실제 지출 추세를 보는 참고 자료이며, 회계 변경 등으로 숫자가 줄어 보일 수 있어 신호 판정에는 쓰지 않습니다.</p>`;
+}
+function guideHTML() {
+  const opt = (v, cur) => `<option value="${v}" ${cur === v ? "selected" : ""}>${v || "미확인"}</option>`;
+  const rows = BIGTECH.map(c => {
+    const g = state["ai_g_" + c.id] || "", d = state["ai_d_" + c.id] || "", m = state["ai_m_" + c.id] || "";
+    return `<div class="g-row" data-grow="${c.id}">
+      <span class="g-name">${c.name}</span>
+      <select data-id="ai_g_${c.id}" aria-label="${c.name} 다음 해 설비투자 계획">${["", "확대", "유지", "축소", "언급 없음"].map(v => opt(v, g)).join("")}</select>
+      <input type="date" data-id="ai_d_${c.id}" value="${d}" aria-label="${c.name} 확인한 날">
+      <input type="text" data-id="ai_m_${c.id}" value="${m.replace(/"/g, "&quot;")}" placeholder="예: 내년 크게 늘린다고 언급" aria-label="${c.name} 메모">
+    </div>`;
+  }).join("");
+  return `<div class="guide" role="group" aria-label="빅테크 설비투자 가이던스">
+    <div class="g-row g-head"><span>회사</span><span>다음 해 계획</span><span>확인한 날</span><span>메모</span></div>
+    ${rows}</div><p class="season" data-season></p>`;
+}
 
 /* ── 계산 도우미 ── */
 const closeOf = r => (r.close ?? r.value);
@@ -286,9 +439,8 @@ async function loadAll() {
     HINT.gold = `참고: 미국 국채 금리 ${parts.join(", ")}. 금리 방향과 중앙은행 매입은 직접 판단해 체크하세요.`;
   }
 
-  // 암호화폐
-  dd = drawdown(X.btc);
-  if (dd) AUTO.c_dd = { value: dd.value, note: ddNote(dd, "비트코인") };
+  // 빅테크 설비투자
+  CAPEX = extra && extra.capex && Array.isArray(extra.capex.companies) ? extra.capex : null;
 }
 
 /* ── 판정 도우미 ── */
@@ -307,6 +459,8 @@ const fmtS = v => v === null ? "–" : f2(v);
 const ASSETS = [
   {
     id: "sp500", name: "미국 S&P500",
+    q: "주식이 정말 저렴한가?",
+    desc: `<p>주가가 20% 떨어졌다고 바로 사지 않습니다. 미국 국채에 투자하는 것보다 주식의 예상 이익이 충분히 매력적인지 비교합니다.</p><p class="note">예: 주식 이익수익률 6%, 국채 금리 3%라면 차이가 3%p이므로 매수 판단에 유리합니다.</p>`,
     inputs: [
       { id: "sp_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
       { id: "sp_ey", type: "num", label: "S&P500 이익수익률", unit: "%" },
@@ -322,21 +476,33 @@ const ASSETS = [
   },
   {
     id: "ai", name: "AI 관련 주식",
+    q: "빅테크가 AI에 계속 돈을 쓰는가?",
+    desc: `<p>AI 주식이 30% 떨어져도 마이크로소프트나 구글 같은 기업이 AI 데이터센터 등에 계속 투자한다면 매수 기회로 봅니다. 반대로 주가가 높아도 빅테크들이 설비투자를 줄이기 시작하면 주의합니다.</p><p class="note">확인 시기: 1월·4월·7월·10월 말 실적 발표 시즌</p>`,
     inputs: [
       { id: "ai_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
-      { id: "ai_keep", type: "check", label: "빅테크의 AI 투자 계획이 유지되고 있다" },
-      { id: "ai_cut", type: "count", label: "다음 해 설비투자 축소를 발표한 빅테크 수", max: 4 }
+      { type: "block", title: "실적 발표에서 밝힌 다음 해 설비투자 계획", html: guideHTML },
+      { type: "block", title: "실적 발표 PDF로 AI 투자 확인하기", html: () => `<div data-e-box>${window.earningsHTML ? window.earningsHTML() : ""}</div>` },
+      { type: "block", title: "분기별 실제 설비투자", html: capexHTML }
     ],
     buyText: "고점 대비 30% 이상 하락해도 빅테크의 AI 투자 계획이 유지될 때",
     sellText: "빅테크 4곳 중 2곳 이상이 다음 해 설비투자 축소를 발표할 때",
-    buy: () => [
-      ["고점 대비 30% 이상 하락", cmp(num("ai_dd"), v => v >= 30)],
-      ["빅테크 AI 투자 계획 유지", chk("ai_keep")]
-    ],
-    sell: () => [[`4곳 중 2곳 이상 설비투자 축소 (현재 ${num("ai_cut") ?? 0}곳)`, (num("ai_cut") ?? 0) >= 2]]
+    buy: () => {
+      const g = guideStatus();
+      const keep = g.cut > 0 ? false : (g.known >= 3 ? true : null);
+      return [
+        ["고점 대비 30% 이상 하락", cmp(num("ai_dd"), v => v >= 30)],
+        [`빅테크 AI 투자 계획 유지: 설비투자 축소 발표 없음 (현재 축소 ${g.cut}곳, 4곳 중 ${g.known}곳 확인)`, keep]
+      ];
+    },
+    sell: () => {
+      const g = guideStatus();
+      return [[`4곳 중 2곳 이상 다음 해 설비투자 축소 (현재 ${g.cut}곳)`, g.cut >= 2 ? true : (g.known === 4 || g.cut + (4 - g.known) < 2 ? false : null)]];
+    }
   },
   {
     id: "kr", name: "한국 커버드콜",
+    q: "한국 증시와 반도체 업황이 어떤가?",
+    desc: `<p>코스피가 크게 떨어지고 기업 실적 대비 주가도 저렴하다면 매수를 검토합니다. 반대로 반도체 수출과 메모리 가격이 계속 나빠진다면 투자 비중을 줄일 근거로 삼습니다.</p><p class="note">커버드콜은 상승 수익이 제한될 수 있고 하락 손실도 발생합니다.</p>`,
     inputs: [
       { id: "kr_dd", type: "num", label: "코스피 고점 대비 하락률", unit: "%", dec: 1 },
       { id: "kr_per", type: "num", label: "코스피 예상 PER", unit: "배" },
@@ -356,6 +522,8 @@ const ASSETS = [
   },
   {
     id: "gold", name: "금", hint: "gold",
+    q: "금 자체가 싸졌는가?",
+    desc: `<p>한국에서 금을 보면 원·달러 환율 때문에 가격이 다르게 보입니다. 그래서 달러 기준 금값을 확인합니다. 금값이 충분히 떨어지고 중앙은행의 금 수요가 유지되거나 미국이 금리를 내리기 시작한다면 매수를 검토합니다.</p>`,
     inputs: [
       { id: "g_dd", type: "num", label: "달러 기준 금값 고점 대비 하락률", unit: "%", dec: 1 },
       { id: "g_cb", type: "check", label: "중앙은행 금 매입이 유지되고 있다" },
@@ -372,20 +540,9 @@ const ASSETS = [
     sell: () => [["미국 금리 계속 상승", chk("g_up")], ["중앙은행 금 매입 감소", chk("g_cbdown")]]
   },
   {
-    id: "crypto", name: "암호화폐",
-    inputs: [
-      { id: "c_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
-      { id: "c_etf", type: "check", label: "미국 현물 ETF에 자금이 들어오고 있다" },
-      { id: "c_reg", type: "check", label: "보유에 영향을 주는 제도 변화가 생겼다" }
-    ],
-    buyText: "고점 대비 50% 이상 하락하고 미국 현물 ETF에 자금이 들어올 때",
-    sellText: "가격 하락만으로는 팔지 않음. 보유에 영향을 주는 제도 변화가 있을 때 검토",
-    buy: () => [["고점 대비 50% 이상 하락", cmp(num("c_dd"), v => v >= 50)], ["미국 현물 ETF 자금 유입", chk("c_etf")]],
-    sell: () => [["보유에 영향을 주는 제도 변화", chk("c_reg")]],
-    sellIsReview: true
-  },
-  {
     id: "cash", name: "현금",
+    q: "폭락장에서 투자할 준비금",
+    desc: `<p>주식이 비싸다고 판단되면 현금을 모읍니다. 이후 투자자산 전체가 크게 하락할 때 현금을 한 번에 쓰지 않고 나눠서 투자합니다.</p>`,
     inputs: [{ id: "cash_dd", type: "num", label: "투자자산 전체 고점 대비 하락률", unit: "%" }],
     buyText: "주식이 국채에 비해 비싸질 때 현금 비중 확대",
     sellText: "투자자산 전체가 고점 대비 15%, 25%, 35% 하락할 때 단계적으로 투자",
@@ -439,6 +596,7 @@ function stateHTML(res, kind, a) {
   return `<span class="state off">${res === null ? "확인 필요" : "아직 아님"}</span>`;
 }
 function inputHTML(f) {
+  if (f.type === "block") return `<div class="block"><h4>${f.title}</h4>${f.html()}</div>`;
   const auto = AUTO[f.id];
   if (f.type === "num" && auto && typeof auto.value === "number") {
     const d = f.dec ?? 2;
@@ -468,7 +626,8 @@ function renderSources() {
 function renderStatic() {
   document.getElementById("assets").innerHTML = ASSETS.map(a => `
     <section class="asset" id="${a.id}" aria-labelledby="${a.id}-h">
-      <div class="asset-head"><h2 id="${a.id}-h">${a.name}</h2><span class="lamps" data-lamps="${a.id}"></span></div>
+      <div class="asset-head"><h2 id="${a.id}-h">${a.name} <span class="q">${a.q || ""}</span></h2><span class="lamps" data-lamps="${a.id}"></span></div>
+      <div class="desc">${a.desc || ""}</div>
       <div class="inputs">${a.inputs.map(inputHTML).join("")}${a.hint && HINT[a.hint] ? `<p class="hint">${HINT[a.hint]}</p>` : ""}</div>
       <div class="rules">
         <div class="rule buy">
@@ -502,6 +661,22 @@ function update() {
     }
   });
   document.getElementById("board").innerHTML = board.join("");
+  const g = guideStatus();
+  BIGTECH.forEach(c => {
+    const row = document.querySelector(`[data-grow="${c.id}"]`);
+    if (row) row.classList.toggle("stale", g.stale.includes(c.name));
+  });
+  const se = document.querySelector("[data-season]");
+  if (se) {
+    const now = new Date(), nx = nextSeason(now);
+    if (g.stale.length) {
+      se.className = "season alert";
+      se.textContent = `${g.start ? monthLabel(new Date(g.start.getFullYear(), g.start.getMonth(), 1)) + " 실적 시즌 이후 " : ""}아직 확인하지 않은 곳: ${g.stale.join(", ")}. 다음 실적 시즌은 ${monthLabel(nx)}입니다.`;
+    } else {
+      se.className = "season";
+      se.textContent = `이번 실적 시즌 확인을 마쳤습니다. 다음 실적 시즌은 ${monthLabel(nx)}입니다.`;
+    }
+  }
 }
 
 document.addEventListener("input", e => {
