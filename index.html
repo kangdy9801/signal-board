@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내 투자 신호표</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚦</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #E9EEF0; --surface: #F7F9FA; --ink: #16222E; --muted: #56636F; --line: #C6D0D6;
+  --buy: #1E6B52; --buy-bg: #DCEFE6; --sell: #9A2F4E; --sell-bg: #F6DEE5;
+  --review: #7D5F0E; --review-bg: #F3E9C9; --wait: #6B7682; --field: #FFFFFF; --auto: #E1E8EC;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10171E; --surface: #18222B; --ink: #E3EAEF; --muted: #97A5B1; --line: #2C3A46;
+    --buy: #74D2AA; --buy-bg: #173A2E; --sell: #F09AB4; --sell-bg: #3D1E29;
+    --review: #E4C564; --review-bg: #3A3016; --wait: #8996A2; --field: #0F161C; --auto: #1F2B35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10171E; --surface: #18222B; --ink: #E3EAEF; --muted: #97A5B1; --line: #2C3A46;
+  --buy: #74D2AA; --buy-bg: #173A2E; --sell: #F09AB4; --sell-bg: #3D1E29;
+  --review: #E4C564; --review-bg: #3A3016; --wait: #8996A2; --field: #0F161C; --auto: #1F2B35;
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.6; word-break: keep-all;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 48px 20px 64px; }
+h1, h2 { font-family: "Gowun Batang", "Nanum Myeongjo", Georgia, serif; font-weight: 700; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.2; letter-spacing: -0.01em; }
+.lede { color: var(--muted); max-width: 46em; margin: 14px 0 0; }
+.sources { margin: 18px 0 0; padding: 0; list-style: none; font-size: .85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.sources .ok::before { content: "● "; color: var(--buy); }
+.sources .fail::before { content: "● "; color: var(--sell); }
+.sources .wait::before { content: "○ "; }
+
+.board { margin: 36px 0 12px; border-top: 2px solid var(--ink); }
+.board a {
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+  padding: 14px 4px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none;
+}
+.board a:hover .bname { text-decoration: underline; text-underline-offset: 4px; }
+.board a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.bname { font-family: "Gowun Batang", Georgia, serif; font-size: 1.25rem; }
+.lamps { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.lamp {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 500;
+  padding: 3px 10px 3px 8px; border-radius: 999px; color: var(--wait); border: 1px solid var(--line);
+}
+.lamp::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; opacity: .45; }
+.lamp.buy { color: var(--buy); background: var(--buy-bg); border-color: transparent; }
+.lamp.sell { color: var(--sell); background: var(--sell-bg); border-color: transparent; }
+.lamp.review { color: var(--review); background: var(--review-bg); border-color: transparent; }
+.lamp.buy::before, .lamp.sell::before, .lamp.review::before { opacity: 1; }
+.board-note { color: var(--muted); font-size: .9rem; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+button.link {
+  background: none; border: 0; padding: 0; color: var(--muted); font: inherit; font-size: .9rem;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+button.link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.asset { margin-top: 56px; }
+.asset-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
+.asset-head h2 { font-size: 1.7rem; }
+.inputs { display: flex; flex-wrap: wrap; gap: 14px 20px; padding: 18px 0; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--muted); min-width: 150px; flex: 1 1 170px; max-width: 260px; }
+.field .row { display: flex; align-items: center; gap: 6px; }
+.field input[type="number"], .field select {
+  width: 100%; font: inherit; font-size: 1rem; color: var(--ink); background: var(--field);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px;
+}
+.field output {
+  display: block; width: 100%; font-size: 1rem; font-weight: 600; color: var(--ink);
+  background: var(--auto); border-radius: 6px; padding: 7px 10px; font-variant-numeric: tabular-nums;
+}
+.field .src { font-size: .78rem; line-height: 1.45; }
+.field .unit { color: var(--muted); }
+.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: .95rem; cursor: pointer; max-width: none; flex: 1 1 220px; }
+.check input { width: 18px; height: 18px; accent-color: var(--ink); margin: 0; flex: none; }
+.hint { flex: 1 1 100%; margin: 0; font-size: .85rem; color: var(--muted); border-left: 2px solid var(--line); padding-left: 10px; }
+input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+.rules { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.rule { padding: 18px 20px; }
+.rule + .rule { border-left: 1px solid var(--line); }
+.rule h3 { margin: 0 0 4px; font-size: 1rem; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.rule.buy h3 { color: var(--buy); }
+.rule.sell h3 { color: var(--sell); }
+.rule .text { margin: 0 0 12px; color: var(--muted); font-size: .93rem; }
+.conds { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.conds li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; font-size: .93rem; }
+.mark { font-weight: 600; text-align: center; }
+.c-yes .mark { color: var(--buy); }
+.rule.sell .c-yes .mark { color: var(--sell); }
+.c-no .mark { color: var(--wait); }
+.c-na, .c-na .mark { color: var(--muted); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.state { font-size: .82rem; font-weight: 500; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.state.on-buy { background: var(--buy-bg); color: var(--buy); }
+.state.on-sell { background: var(--sell-bg); color: var(--sell); }
+.state.on-review { background: var(--review-bg); color: var(--review); }
+.state.off { color: var(--wait); border: 1px solid var(--line); }
+
+.stages { display: flex; margin-top: 4px; }
+.stage { flex: 1; text-align: center; padding: 8px 4px; font-size: .88rem; border: 1px solid var(--line); color: var(--muted); }
+.stage + .stage { border-left: 0; }
+.stage:first-child { border-radius: 6px 0 0 6px; }
+.stage:last-child { border-radius: 0 6px 6px 0; }
+.stage.hit { background: var(--buy-bg); color: var(--buy); font-weight: 600; border-color: transparent; }
+
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; max-width: 46em; }
+
+@media (max-width: 720px) {
+  .wrap { padding-top: 32px; }
+  .rules { grid-template-columns: 1fr; }
+  .rule + .rule { border-left: 0; border-top: 1px solid var(--line); }
+  .field { max-width: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lamp, .state { transition: background-color .2s, color .2s; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>언제 더 사고, 언제 줄일까</h1>
+    <p class="lede">회색 칸은 매일 자동으로 채워지는 값이고, 흰 칸과 체크 항목은 직접 입력하는 값입니다. 직접 입력한 값은 이 브라우저에만 저장됩니다.</p>
+    <ul class="sources" id="sources" aria-live="polite">
+      <li class="wait">데이터를 불러오는 중…</li>
+    </ul>
+  </header>
+
+  <nav class="board" id="board" aria-label="자산별 신호 요약"></nav>
+  <div class="board-note">
+    <span>빈칸이 있으면 해당 조건은 ‘미입력’으로 두고 판단하지 않습니다.</span>
+    <button class="link" id="reset" type="button">직접 입력한 값 모두 지우기</button>
+  </div>
+
+  <main id="assets"></main>
+
+  <footer>
+    하락률은 각 데이터에 담긴 최근 약 3년 중 가장 높은 종가를 고점으로 계산합니다. 금은 COMEX 금 선물, AI 관련 주식은 data/extra.json의 ETF(없으면 나스닥 종합)를 기준으로 합니다. 개인 투자 원칙을 점검하기 위한 도구이며 투자 자문이 아닙니다. 최종 판단과 책임은 본인에게 있습니다.
+  </footer>
+</div>
+
+<script>
+/* ── 데이터 위치 (같은 github.io 주소 아래에 있어야 합니다) ── */
+const SOURCES = {
+  market: "/macro-dashboard/data/market.json",
+  seed: "/kr-trade-monitor/assets/seed.js",
+  extra: "data/extra.json"
+};
+
+const STORE_KEY = "signal-board-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {}; } catch (e) { state = {}; }
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+const AUTO = {};      // id → { value, note }
+const HINT = {};      // id → html
+const LOADED = {};    // 출처별 상태
+
+/* ── 계산 도우미 ── */
+const closeOf = r => (r.close ?? r.value);
+function drawdown(series) {
+  if (!series || !series.data || !series.data.length) return null;
+  const rows = series.data.filter(r => typeof closeOf(r) === "number");
+  if (!rows.length) return null;
+  let peak = rows[0];
+  rows.forEach(r => { if (closeOf(r) > closeOf(peak)) peak = r; });
+  const last = rows[rows.length - 1];
+  return { value: (1 - closeOf(last) / closeOf(peak)) * 100, last, peak };
+}
+function lastValue(series) {
+  if (!series || !series.data || !series.data.length) return null;
+  return series.data[series.data.length - 1];
+}
+function valueAgo(series, n) {
+  const d = series && series.data;
+  if (!d || d.length <= n) return null;
+  return closeOf(d[d.length - 1 - n]);
+}
+function declineStreak(arr) {
+  let n = 0;
+  for (let i = arr.length - 1; i > 0; i--) {
+    if (typeof arr[i] === "number" && typeof arr[i - 1] === "number" && arr[i] < arr[i - 1]) n++;
+    else break;
+  }
+  return n;
+}
+const f1 = v => (Math.round(v * 10) / 10).toFixed(1);
+const f2 = v => (Math.round(v * 100) / 100).toFixed(2);
+const sign = v => (v > 0 ? "+" : "") + f2(v);
+const shortNum = v => v >= 1000 ? Math.round(v).toLocaleString("ko-KR") : f2(v);
+function ddNote(dd, label) {
+  return `${label} · ${dd.last.time} 종가 ${shortNum(closeOf(dd.last))}, 고점 ${shortNum(closeOf(dd.peak))} (${dd.peak.time})`;
+}
+
+/* ── 데이터 불러오기 ── */
+async function getJSON(url) {
+  const r = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src + "?t=" + Date.now();
+    s.onload = resolve; s.onerror = () => reject(new Error("load"));
+    document.head.appendChild(s);
+  });
+}
+
+async function loadAll() {
+  const [market, extra] = await Promise.all([
+    getJSON(SOURCES.market).catch(() => null),
+    getJSON(SOURCES.extra).catch(() => null),
+    loadScript(SOURCES.seed).catch(() => null)
+  ]);
+  const seed = Array.isArray(window.KTM_SEED) ? window.KTM_SEED : null;
+
+  const M = {}; (market?.series || []).forEach(s => M[s.id] = s);
+  const X = {}; (extra?.series || []).forEach(s => X[s.id] = s);
+
+  LOADED.market = market ? `시장 데이터 ${String(market.updated).slice(0, 10)} 갱신` : null;
+  LOADED.extra = extra && extra.updated ? `추가 데이터 ${String(extra.updated).slice(0, 10)} 갱신` : null;
+
+  // S&P500
+  let dd = drawdown(M.spx);
+  if (dd) AUTO.sp_dd = { value: dd.value, note: ddNote(dd, "S&P 500") };
+  const t10 = lastValue(M.us10y);
+  if (t10) AUTO.sp_ty = { value: t10.value, note: `미국 재무부 10년물 · ${t10.time}` };
+  const ey = extra?.earnings_yield;
+  if (ey && typeof ey.value === "number") AUTO.sp_ey = { value: ey.value, note: `${ey.source} · ${ey.as_of}` };
+
+  // AI
+  dd = drawdown(X.ai);
+  if (dd) AUTO.ai_dd = { value: dd.value, note: ddNote(dd, X.ai.title || "AI ETF") };
+  else if ((dd = drawdown(M.ndx))) AUTO.ai_dd = { value: dd.value, note: ddNote(dd, "나스닥 종합으로 대신 계산") };
+
+  // 한국
+  dd = drawdown(X.kospi);
+  if (dd) AUTO.kr_dd = { value: dd.value, note: ddNote(dd, "코스피") };
+  if (seed && seed.length) {
+    const rec = [...seed].sort((a, b) => String(a.id).localeCompare(String(b.id))).pop();
+    const t = rec.trade || {};
+    const semi = t.items && t.items["반도체"];
+    if (semi && Array.isArray(semi.yoy)) {
+      const n = declineStreak(semi.yoy);
+      const tail = semi.yoy.slice(-4).map(v => v + "%").join(" → ");
+      AUTO.kr_exp = { value: n, note: `${t.year}년 ${t.month}월 수출입 동향 · 반도체 전년비 ${tail}` };
+    }
+    if (t.memory && Array.isArray(t.memory.ddr5)) {
+      const n = declineStreak(t.memory.ddr5);
+      const lbl = t.memory.labels || [];
+      const tail = t.memory.ddr5.slice(-4).join(" → ");
+      const nand = Array.isArray(t.memory.nand) ? ` · 낸드 ${declineStreak(t.memory.nand)}개월 연속 하락` : "";
+      AUTO.kr_mem = { value: n, note: `DDR5 고정가(달러) ${tail} (${lbl[lbl.length - 1] || ""}월까지)${nand}` };
+    }
+    LOADED.seed = `수출입 동향 ${t.year}년 ${t.month}월분`;
+  } else LOADED.seed = null;
+
+  // 금
+  dd = drawdown(M.gold);
+  if (dd) AUTO.g_dd = { value: dd.value, note: ddNote(dd, "COMEX 금 선물") };
+  if (M.us10y && M.us3y) {
+    const parts = [["10년물", M.us10y], ["3년물", M.us3y]].map(([n, s]) => {
+      const now = closeOf(lastValue(s)), m1 = valueAgo(s, 21), m3 = valueAgo(s, 63);
+      return `${n} ${f2(now)}% (1개월 전 대비 ${m1 == null ? "–" : sign(now - m1)}%p, 3개월 전 대비 ${m3 == null ? "–" : sign(now - m3)}%p)`;
+    });
+    HINT.gold = `참고: 미국 국채 금리 ${parts.join(", ")}. 금리 방향과 중앙은행 매입은 직접 판단해 체크하세요.`;
+  }
+
+  // 암호화폐
+  dd = drawdown(X.btc);
+  if (dd) AUTO.c_dd = { value: dd.value, note: ddNote(dd, "비트코인") };
+}
+
+/* ── 판정 도우미 ── */
+function num(id) {
+  if (AUTO[id] && typeof AUTO[id].value === "number") return AUTO[id].value;
+  const v = state[id];
+  return (v === undefined || v === "" || isNaN(Number(v))) ? null : Number(v);
+}
+function chk(id) { return state[id] === true; }
+function cmp(v, fn) { return v === null ? null : fn(v); }
+function all(list) { if (list.some(x => x === false)) return false; if (list.some(x => x === null)) return null; return true; }
+function any(list) { if (list.some(x => x === true)) return true; if (list.some(x => x === null)) return null; return false; }
+const spread = () => { const ey = num("sp_ey"), ty = num("sp_ty"); return (ey === null || ty === null) ? null : ey - ty; };
+const fmtS = v => v === null ? "–" : f2(v);
+
+const ASSETS = [
+  {
+    id: "sp500", name: "미국 S&P500",
+    inputs: [
+      { id: "sp_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
+      { id: "sp_ey", type: "num", label: "S&P500 이익수익률", unit: "%" },
+      { id: "sp_ty", type: "num", label: "미국 국채 금리 (10년)", unit: "%" }
+    ],
+    buyText: "고점 대비 20% 이상 하락하고, 주식의 이익수익률이 국채 금리보다 2%p 이상 높을 때",
+    sellText: "주식의 이익수익률과 국채 금리 차이가 0.5%p 이하일 때",
+    buy: () => [
+      ["고점 대비 20% 이상 하락", cmp(num("sp_dd"), v => v >= 20)],
+      [`이익수익률 − 국채 금리 ≥ 2%p (현재 ${fmtS(spread())}%p)`, cmp(spread(), v => v >= 2)]
+    ],
+    sell: () => [[`이익수익률 − 국채 금리 ≤ 0.5%p (현재 ${fmtS(spread())}%p)`, cmp(spread(), v => v <= 0.5)]]
+  },
+  {
+    id: "ai", name: "AI 관련 주식",
+    inputs: [
+      { id: "ai_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
+      { id: "ai_keep", type: "check", label: "빅테크의 AI 투자 계획이 유지되고 있다" },
+      { id: "ai_cut", type: "count", label: "다음 해 설비투자 축소를 발표한 빅테크 수", max: 4 }
+    ],
+    buyText: "고점 대비 30% 이상 하락해도 빅테크의 AI 투자 계획이 유지될 때",
+    sellText: "빅테크 4곳 중 2곳 이상이 다음 해 설비투자 축소를 발표할 때",
+    buy: () => [
+      ["고점 대비 30% 이상 하락", cmp(num("ai_dd"), v => v >= 30)],
+      ["빅테크 AI 투자 계획 유지", chk("ai_keep")]
+    ],
+    sell: () => [[`4곳 중 2곳 이상 설비투자 축소 (현재 ${num("ai_cut") ?? 0}곳)`, (num("ai_cut") ?? 0) >= 2]]
+  },
+  {
+    id: "kr", name: "한국 커버드콜",
+    inputs: [
+      { id: "kr_dd", type: "num", label: "코스피 고점 대비 하락률", unit: "%", dec: 1 },
+      { id: "kr_per", type: "num", label: "코스피 예상 PER", unit: "배" },
+      { id: "kr_exp", type: "num", label: "반도체 수출 증가율 연속 둔화", unit: "개월", dec: 0 },
+      { id: "kr_mem", type: "num", label: "메모리 가격 연속 하락", unit: "개월", dec: 0 }
+    ],
+    buyText: "코스피가 25% 이상 하락하고, 예상 PER이 8배 이하일 때",
+    sellText: "반도체 수출 증가율이 3개월 연속 둔화되고 메모리 가격도 2개월 연속 하락할 때",
+    buy: () => [
+      ["코스피 25% 이상 하락", cmp(num("kr_dd"), v => v >= 25)],
+      ["예상 PER 8배 이하", cmp(num("kr_per"), v => v <= 8)]
+    ],
+    sell: () => [
+      [`반도체 수출 증가율 3개월 연속 둔화 (현재 ${num("kr_exp") ?? "–"}개월)`, cmp(num("kr_exp"), v => v >= 3)],
+      [`메모리 가격 2개월 연속 하락 (현재 ${num("kr_mem") ?? "–"}개월)`, cmp(num("kr_mem"), v => v >= 2)]
+    ]
+  },
+  {
+    id: "gold", name: "금", hint: "gold",
+    inputs: [
+      { id: "g_dd", type: "num", label: "달러 기준 금값 고점 대비 하락률", unit: "%", dec: 1 },
+      { id: "g_cb", type: "check", label: "중앙은행 금 매입이 유지되고 있다" },
+      { id: "g_cut", type: "check", label: "미국이 금리 인하로 전환했다" },
+      { id: "g_up", type: "check", label: "미국 금리가 계속 오르고 있다" },
+      { id: "g_cbdown", type: "check", label: "중앙은행 금 매입이 감소하고 있다" }
+    ],
+    buyText: "달러 기준 금값이 25% 이상 하락하고 중앙은행 매입이 유지되거나 미국이 금리 인하로 전환할 때",
+    sellText: "미국 금리가 계속 오르면서 중앙은행의 금 매입도 감소할 때",
+    buy: () => [
+      ["금값 25% 이상 하락", cmp(num("g_dd"), v => v >= 25)],
+      ["중앙은행 매입 유지 또는 미국 금리 인하 전환", chk("g_cb") || chk("g_cut")]
+    ],
+    sell: () => [["미국 금리 계속 상승", chk("g_up")], ["중앙은행 금 매입 감소", chk("g_cbdown")]]
+  },
+  {
+    id: "crypto", name: "암호화폐",
+    inputs: [
+      { id: "c_dd", type: "num", label: "고점 대비 하락률", unit: "%", dec: 1 },
+      { id: "c_etf", type: "check", label: "미국 현물 ETF에 자금이 들어오고 있다" },
+      { id: "c_reg", type: "check", label: "보유에 영향을 주는 제도 변화가 생겼다" }
+    ],
+    buyText: "고점 대비 50% 이상 하락하고 미국 현물 ETF에 자금이 들어올 때",
+    sellText: "가격 하락만으로는 팔지 않음. 보유에 영향을 주는 제도 변화가 있을 때 검토",
+    buy: () => [["고점 대비 50% 이상 하락", cmp(num("c_dd"), v => v >= 50)], ["미국 현물 ETF 자금 유입", chk("c_etf")]],
+    sell: () => [["보유에 영향을 주는 제도 변화", chk("c_reg")]],
+    sellIsReview: true
+  },
+  {
+    id: "cash", name: "현금",
+    inputs: [{ id: "cash_dd", type: "num", label: "투자자산 전체 고점 대비 하락률", unit: "%" }],
+    buyText: "주식이 국채에 비해 비싸질 때 현금 비중 확대",
+    sellText: "투자자산 전체가 고점 대비 15%, 25%, 35% 하락할 때 단계적으로 투자",
+    buyLabel: "현금 늘리기", sellLabel: "현금 투입하기", buyOn: "현금 확대", sellOn: "투입",
+    buy: () => [[`주식이 국채 대비 비쌈: S&P500 금리 차 ≤ 0.5%p (현재 ${fmtS(spread())}%p)`, cmp(spread(), v => v <= 0.5)]],
+    sell: () => {
+      const d = num("cash_dd");
+      return [
+        ["1단계: 15% 이상 하락", cmp(d, v => v >= 15)],
+        ["2단계: 25% 이상 하락", cmp(d, v => v >= 25)],
+        ["3단계: 35% 이상 하락", cmp(d, v => v >= 35)]
+      ];
+    },
+    sellLogic: "any", stages: true
+  }
+];
+
+function evalAsset(a) {
+  const b = a.buy(), s = a.sell();
+  const bRes = all(b.map(x => x[1]));
+  const sRes = a.sellLogic === "any" ? any(s.map(x => x[1])) : all(s.map(x => x[1]));
+  return { b, s, bRes, sRes };
+}
+
+function lampsHTML(a, r) {
+  const out = [];
+  if (r.bRes === true) out.push(`<span class="lamp buy">${a.buyOn || "매수 신호"}</span>`);
+  if (r.sRes === true) {
+    if (a.sellIsReview) out.push(`<span class="lamp review">매도 검토</span>`);
+    else if (a.stages) out.push(`<span class="lamp buy">${r.s.filter(x => x[1] === true).length}단계 ${a.sellOn}</span>`);
+    else out.push(`<span class="lamp sell">매도 신호</span>`);
+  }
+  if (!out.length) out.push(`<span class="lamp">대기</span>`);
+  return out.join("");
+}
+function condsHTML(list) {
+  return list.map(([label, v]) => {
+    const cls = v === true ? "c-yes" : v === false ? "c-no" : "c-na";
+    const mark = v === true ? "✓" : v === false ? "–" : "?";
+    const sr = v === true ? "충족" : v === false ? "미충족" : "미입력";
+    return `<li class="${cls}"><span class="mark" aria-hidden="true">${mark}</span><span>${label}<span class="vh">, ${sr}</span></span></li>`;
+  }).join("");
+}
+function stateHTML(res, kind, a) {
+  if (res === true) {
+    if (kind === "sell" && a.sellIsReview) return `<span class="state on-review">검토할 때</span>`;
+    if (kind === "sell" && a.stages) return `<span class="state on-buy">투입 단계</span>`;
+    if (kind === "buy" && a.buyOn) return `<span class="state on-review">해당</span>`;
+    return `<span class="state ${kind === "buy" ? "on-buy" : "on-sell"}">해당</span>`;
+  }
+  return `<span class="state off">${res === null ? "확인 필요" : "아직 아님"}</span>`;
+}
+function inputHTML(f) {
+  const auto = AUTO[f.id];
+  if (f.type === "num" && auto && typeof auto.value === "number") {
+    const d = f.dec ?? 2;
+    const shown = d === 0 ? String(auto.value) : (d === 1 ? f1(auto.value) : f2(auto.value));
+    return `<div class="field">${f.label}<span class="row"><output>${shown}</output><span class="unit">${f.unit}</span></span><span class="src">자동 · ${auto.note}</span></div>`;
+  }
+  const v = state[f.id];
+  if (f.type === "num") {
+    return `<label class="field">${f.label}<span class="row"><input type="number" inputmode="decimal" step="any" data-id="${f.id}" value="${v ?? ""}"><span class="unit">${f.unit}</span></span></label>`;
+  }
+  if (f.type === "count") {
+    const opts = Array.from({ length: f.max + 1 }, (_, i) => `<option value="${i}" ${Number(v ?? 0) === i ? "selected" : ""}>${i}곳</option>`).join("");
+    return `<label class="field">${f.label}<select data-id="${f.id}">${opts}</select></label>`;
+  }
+  return `<label class="field check"><input type="checkbox" data-id="${f.id}" ${v === true ? "checked" : ""}>${f.label}</label>`;
+}
+
+function renderSources() {
+  const items = [
+    [LOADED.market, "macro-dashboard 시장 데이터를 불러오지 못했습니다"],
+    [LOADED.seed, "kr-trade-monitor 수출입 기록을 불러오지 못했습니다"],
+    [LOADED.extra, "추가 데이터(data/extra.json)가 아직 없습니다. Actions에서 한 번 실행하세요"]
+  ];
+  document.getElementById("sources").innerHTML =
+    items.map(([ok, fail]) => ok ? `<li class="ok">${ok}</li>` : `<li class="fail">${fail}</li>`).join("");
+}
+function renderStatic() {
+  document.getElementById("assets").innerHTML = ASSETS.map(a => `
+    <section class="asset" id="${a.id}" aria-labelledby="${a.id}-h">
+      <div class="asset-head"><h2 id="${a.id}-h">${a.name}</h2><span class="lamps" data-lamps="${a.id}"></span></div>
+      <div class="inputs">${a.inputs.map(inputHTML).join("")}${a.hint && HINT[a.hint] ? `<p class="hint">${HINT[a.hint]}</p>` : ""}</div>
+      <div class="rules">
+        <div class="rule buy">
+          <h3>${a.buyLabel || "언제 더 살까"}<span data-state="${a.id}-buy"></span></h3>
+          <p class="text">${a.buyText}</p>
+          <ul class="conds" data-conds="${a.id}-buy"></ul>
+        </div>
+        <div class="rule sell">
+          <h3>${a.sellLabel || "언제 줄일까"}<span data-state="${a.id}-sell"></span></h3>
+          <p class="text">${a.sellText}</p>
+          ${a.stages ? `<div class="stages" data-stages="${a.id}"></div>` : `<ul class="conds" data-conds="${a.id}-sell"></ul>`}
+        </div>
+      </div>
+    </section>`).join("");
+}
+function update() {
+  const board = [];
+  ASSETS.forEach(a => {
+    const r = evalAsset(a);
+    const lamps = lampsHTML(a, r);
+    board.push(`<a href="#${a.id}"><span class="bname">${a.name}</span><span class="lamps">${lamps}</span></a>`);
+    document.querySelector(`[data-lamps="${a.id}"]`).innerHTML = lamps;
+    document.querySelector(`[data-conds="${a.id}-buy"]`).innerHTML = condsHTML(r.b);
+    document.querySelector(`[data-state="${a.id}-buy"]`).innerHTML = stateHTML(r.bRes, "buy", a);
+    document.querySelector(`[data-state="${a.id}-sell"]`).innerHTML = stateHTML(r.sRes, "sell", a);
+    if (a.stages) {
+      document.querySelector(`[data-stages="${a.id}"]`).innerHTML =
+        r.s.map(([, v], i) => `<div class="stage ${v === true ? "hit" : ""}">${[15, 25, 35][i]}% 하락<br>${i + 1}단계</div>`).join("");
+    } else {
+      document.querySelector(`[data-conds="${a.id}-sell"]`).innerHTML = condsHTML(r.s);
+    }
+  });
+  document.getElementById("board").innerHTML = board.join("");
+}
+
+document.addEventListener("input", e => {
+  const id = e.target.dataset && e.target.dataset.id;
+  if (!id) return;
+  state[id] = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+  save(); update();
+});
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("직접 입력한 값을 모두 지울까요? 자동으로 채워진 값은 그대로 남습니다.")) return;
+  state = {}; save(); renderStatic(); update();
+});
+
+renderStatic(); update();
+loadAll().finally(() => { renderSources(); renderStatic(); update(); });
+</script>
+</body>
+</html>
