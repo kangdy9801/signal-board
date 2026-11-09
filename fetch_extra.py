@@ -21,7 +21,7 @@ START = (dt.date.today() - dt.timedelta(days=365 * 3)).isoformat()
 HEADERS = {"User-Agent": "Mozilla/5.0 (signal-board; GitHub Actions)"}
 
 # SEC는 요청마다 연락처가 담긴 User-Agent를 요구합니다. 본인 이메일로 바꿔 두세요.
-SEC_HEADERS = {"User-Agent": "signal-board personal-use contact@example.com"}
+SEC_HEADERS = {"User-Agent": "signal-board personal-use ekdus@naver.com"}
 # (id, 이름, SEC CIK)
 BIGTECH = [
     ("msft", "마이크로소프트", "0000789019"),
