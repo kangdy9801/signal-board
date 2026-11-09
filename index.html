@@ -539,6 +539,27 @@ const AUTO = {};      // id → { value, note }
 const HINT = {};      // id → html
 const LOADED = {};    // 출처별 상태
 let CAPEX = null;     // 빅테크 분기 설비투자
+let FED = null;       // 미국 기준금리
+
+/* 기준금리 방향: 마지막 변경이 인하면 ‘인하로 전환’, 6개월 안에 인상했으면 ‘계속 오름’ */
+function fedState() {
+  if (!FED || !Array.isArray(FED.changes) || !FED.changes.length) return null;
+  const last = FED.changes[FED.changes.length - 1];
+  const months = (Date.now() - new Date(last.date)) / (30.44 * 864e5);
+  return { last, cut: last.delta < 0, up: last.delta > 0 && months <= 6 };
+}
+function fedHTML() {
+  const f = fedState();
+  if (!f) return `<p class="sub">기준금리 데이터가 아직 없어 아래 두 칸을 직접 체크해야 합니다. GitHub Actions에서 ‘신호표 데이터 업데이트’를 실행하면 자동으로 채워집니다.</p>`;
+  const recent = FED.changes.slice(-4).map(c => `${c.date} ${c.delta > 0 ? "인상" : "인하"} ${Math.abs(c.delta).toFixed(2)}%p`).join(" · ");
+  return `<div class="field" style="max-width:none"><span class="row"><output>${FED.lower != null ? FED.lower.toFixed(2) + "–" : ""}${FED.upper.toFixed(2)}%</output></span>
+    <span class="src">자동 · ${FED.source} · ${FED.as_of}<br>최근 변경: ${recent}<br>
+    판정: 금리 인하로 전환 <b>${f.cut ? "예" : "아니오"}</b> · 금리 계속 상승 <b>${f.up ? "예" : "아니오"}</b> (마지막 변경이 인하면 ‘인하로 전환’, 최근 6개월 안에 인상했으면 ‘계속 상승’으로 봅니다)</span></div>`;
+}
+function fedCut() { const f = fedState(); return f ? f.cut : chk("g_cut"); }
+function fedUp() { const f = fedState(); return f ? f.up : chk("g_up"); }
+function cbKeep() { const t = num("g_cbt"), y = num("g_cby"); return (t === null || y === null) ? null : (t > 0 && y >= 0); }
+function cbDown() { const t = num("g_cbt"), y = num("g_cby"); return (t === null || y === null) ? null : (t <= 0 || y < 0); }
 
 const BIGTECH = [
   { id: "msft", name: "마이크로소프트" },
@@ -737,11 +758,12 @@ async function loadAll() {
       const now = closeOf(lastValue(s)), m1 = valueAgo(s, 21), m3 = valueAgo(s, 63);
       return `${n} ${f2(now)}% (1개월 전 대비 ${m1 == null ? "–" : sign(now - m1)}%p, 3개월 전 대비 ${m3 == null ? "–" : sign(now - m3)}%p)`;
     });
-    HINT.gold = `참고: 미국 국채 금리 ${parts.join(", ")}. 금리 방향과 중앙은행 매입은 직접 판단해 체크하세요.`;
+    HINT.gold = `참고: 시장 금리 흐름 ${parts.join(", ")}.`;
   }
 
   // 빅테크 설비투자
   CAPEX = extra && extra.capex && Array.isArray(extra.capex.companies) ? extra.capex : null;
+  FED = extra && extra.fed && typeof extra.fed.upper === "number" ? extra.fed : null;
 }
 
 /* ── 판정 도우미 ── */
@@ -827,18 +849,19 @@ const ASSETS = [
     desc: `<p>한국에서 금을 보면 원·달러 환율 때문에 가격이 다르게 보입니다. 그래서 달러 기준 금값을 확인합니다. 금값이 충분히 떨어지고 중앙은행의 금 수요가 유지되거나 미국이 금리를 내리기 시작한다면 매수를 검토합니다.</p>`,
     inputs: [
       { id: "g_dd", type: "num", label: "달러 기준 금값 고점 대비 하락률", unit: "%", dec: 1 },
-      { id: "g_cb", type: "check", label: "중앙은행 금 매입이 유지되고 있다" },
-      { id: "g_cut", type: "check", label: "미국이 금리 인하로 전환했다" },
-      { id: "g_up", type: "check", label: "미국 금리가 계속 오르고 있다" },
-      { id: "g_cbdown", type: "check", label: "중앙은행 금 매입이 감소하고 있다" }
+      { type: "block", title: "미국 기준금리 방향", html: () => fedHTML() + (fedState() ? "" :
+          `<div class="inputs" style="padding:8px 0 0">${inputHTML({ id: "g_cut", type: "check", label: "미국이 금리 인하로 전환했다" })}${inputHTML({ id: "g_up", type: "check", label: "미국 금리가 계속 오르고 있다" })}</div>`) },
+      { type: "block", title: "중앙은행 금 매입 (분기마다 직접 입력)", html: () =>
+          `<div class="inputs" style="padding:0">${inputHTML({ id: "g_cbt", type: "num", label: "최근 분기 중앙은행 순매입", unit: "톤" })}${inputHTML({ id: "g_cby", type: "num", label: "전년 같은 분기 대비", unit: "%" })}${inputHTML({ id: "g_cbq", type: "text", label: "기준 분기 (예: 2026년 3분기)" })}</div>
+          <p class="sub">세계금협회(World Gold Council)의 ‘Gold Demand Trends’ 보고서 중앙은행 항목에 두 숫자가 나옵니다. 1·4·7·10월 말이나 다음 달 초에 발표됩니다. 순매입이 0보다 크고 전년보다 줄지 않았으면 ‘유지’, 전년보다 줄었으면 ‘감소’로 봅니다.</p>` }
     ],
     buyText: "달러 기준 금값이 25% 이상 하락하고 중앙은행 매입이 유지되거나 미국이 금리 인하로 전환할 때",
     sellText: "미국 금리가 계속 오르면서 중앙은행의 금 매입도 감소할 때",
     buy: () => [
       ["금값 25% 이상 하락", cmp(num("g_dd"), v => v >= 25)],
-      ["중앙은행 매입 유지 또는 미국 금리 인하 전환", chk("g_cb") || chk("g_cut")]
+      ["중앙은행 매입 유지 또는 미국 금리 인하 전환", any([cbKeep(), fedCut()])]
     ],
-    sell: () => [["미국 금리 계속 상승", chk("g_up")], ["중앙은행 금 매입 감소", chk("g_cbdown")]]
+    sell: () => [["미국 금리 계속 상승", fedUp()], ["중앙은행 금 매입 감소", cbDown()]]
   },
   {
     id: "cash", name: "현금",
@@ -907,6 +930,9 @@ function inputHTML(f) {
   const v = state[f.id];
   if (f.type === "num") {
     return `<label class="field">${f.label}<span class="row"><input type="number" inputmode="decimal" step="any" data-id="${f.id}" value="${v ?? ""}"><span class="unit">${f.unit}</span></span></label>`;
+  }
+  if (f.type === "text") {
+    return `<label class="field">${f.label}<input type="text" data-id="${f.id}" value="${String(v ?? "").replace(/"/g, "&quot;")}" style="width:100%;font:inherit;font-size:1rem;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 10px"></label>`;
   }
   if (f.type === "count") {
     const opts = Array.from({ length: f.max + 1 }, (_, i) => `<option value="${i}" ${Number(v ?? 0) === i ? "selected" : ""}>${i}곳</option>`).join("");

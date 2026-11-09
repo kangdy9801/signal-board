@@ -4,6 +4,7 @@
 - 코스피, AI 관련 ETF: Yahoo Finance (yfinance), 최근 3년 일봉 종가
 - S&P 500 이익수익률: multpl.com 월별 표 → 실패 시 SPY의 PER로 계산(100 ÷ PER)
 - 빅테크 4곳 분기별 설비투자: SEC EDGAR 공시 재무제표(현금흐름표의 유형자산 취득액)
+- 미국 기준금리(연방기금금리 목표 범위)와 최근 변경 이력: FRED (DFEDTARU, DFEDTARL)
 받기에 실패한 항목은 지난 데이터를 그대로 둡니다.
 """
 import datetime as dt
@@ -21,7 +22,7 @@ START = (dt.date.today() - dt.timedelta(days=365 * 3)).isoformat()
 HEADERS = {"User-Agent": "Mozilla/5.0 (signal-board; GitHub Actions)"}
 
 # SEC는 요청마다 연락처가 담긴 User-Agent를 요구합니다. 본인 이메일로 바꿔 두세요.
-SEC_HEADERS = {"User-Agent": "signal-board personal-use ekdus@naver.com"}
+SEC_HEADERS = {"User-Agent": "signal-board personal-use contact@example.com"}
 # (id, 이름, SEC CIK)
 BIGTECH = [
     ("msft", "마이크로소프트", "0000789019"),
@@ -142,6 +143,38 @@ def fetch_capex(old_capex):
     return {"source": "SEC EDGAR 현금흐름표 (유형자산 취득, 금융리스 제외)", "companies": companies} if companies else old_capex
 
 
+def fred_series(sid, start="2015-01-01"):
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}&cosd={start}"
+    r = requests.get(url, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    rows = []
+    for line in r.text.strip().splitlines()[1:]:
+        d, v = line.split(",")[:2]
+        if v.strip() not in (".", ""):
+            rows.append((d.strip(), float(v)))
+    if not rows:
+        raise ValueError(f"{sid} 데이터 없음")
+    return rows
+
+
+def fetch_fed(old_fed):
+    try:
+        upper = fred_series("DFEDTARU")
+        lower = dict(fred_series("DFEDTARL"))
+        changes = []
+        for (d0, v0), (d1, v1) in zip(upper, upper[1:]):
+            if abs(v1 - v0) > 1e-9:
+                changes.append({"date": d1, "upper": v1, "delta": round(v1 - v0, 2)})
+        last_d, last_v = upper[-1]
+        fed = {"as_of": last_d, "upper": last_v, "lower": lower.get(last_d),
+               "changes": changes[-8:], "source": "FRED (연준 기준금리 목표 범위)"}
+        print("기준금리:", fed["lower"], "~", fed["upper"], "최근 변경", changes[-1] if changes else None)
+        return fed
+    except Exception as e:
+        print(f"[fred] 기준금리 실패: {e}")
+        return old_fed
+
+
 def main():
     old = {}
     if os.path.exists(OUT):
@@ -173,11 +206,12 @@ def main():
         ey = old.get("earnings_yield")
 
     capex = fetch_capex(old.get("capex"))
+    fed = fetch_fed(old.get("fed"))
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump({"updated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
-                   "series": series, "earnings_yield": ey, "capex": capex}, f, ensure_ascii=False)
+                   "series": series, "earnings_yield": ey, "capex": capex, "fed": fed}, f, ensure_ascii=False)
     print("저장 완료:", OUT)
 
 
